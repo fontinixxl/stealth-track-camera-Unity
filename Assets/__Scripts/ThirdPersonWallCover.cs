@@ -363,6 +363,16 @@ public class ThirdPersonWallCover : MonoBehaviour {
     public class CoverInfo {
         public int  inCover;
         public bool wallL, wallR, zoomL, zoomR;
+
+        public bool IsNearLeftEdge()
+        {
+            return !zoomL && zoomR;
+        }
+
+        public bool IsNearRighEdge()
+        {
+            return !zoomR && zoomL;
+        }
     }
 
 

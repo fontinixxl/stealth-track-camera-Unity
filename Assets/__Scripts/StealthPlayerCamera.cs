@@ -25,6 +25,14 @@ public class StealthPlayerCamera : MonoBehaviour
     [Tooltip("The rotation about the x axis of the camera in Far mode.")]
     public float        xRotationFar = 60;
 
+    [Header("Inscribed – Near Mode")]
+    [Tooltip("Relative position of the camera to the player when Near Mode")]
+    public Vector3      relativePosNear = Vector3.zero;
+    [Tooltip("Determines how far the camera will be on the X axis (relative to the player)")]
+    public float relativeXPosNear = 1.2f;
+
+    [Tooltip("The rotation about the x axis of the camera in Near mode.")]
+    public float xRotationNear = 15;
 
     [Header("Dynamic")]
     public eCamMode camMode = eCamMode.far;
@@ -52,9 +60,20 @@ public class StealthPlayerCamera : MonoBehaviour
         else
         {
             // When inCover, the camMode switches to eCamMode.near_ if the player is near the edge of cover
-
-            // But for now, until that challenge, it's always eCamMode.far.
-            camMode = eCamMode.far;
+            if (coverInfo.IsNearLeftEdge())
+            {
+                camMode = eCamMode.nearL;
+            } else if (coverInfo.IsNearRighEdge())
+            {
+                camMode = eCamMode.nearR;
+            }
+            else
+            {
+                // If we are in cover but not near either side edges OR
+                // we are near the edge in both sides, either case we will not ZoomIn
+                // and keep camera mode as far.
+                camMode = eCamMode.far;
+            }
         }
 
         // This is initially [0,0,0] to show the issue visually by jumping the Camera
@@ -69,7 +88,13 @@ public class StealthPlayerCamera : MonoBehaviour
                 break;
             case eCamMode.nearL:
             case eCamMode.nearR:
-                // This will be added by learners later.
+                // Desired position should be relative to playerInstance facing and position
+                Vector3 pRelative = relativePosNear;
+                // Offset camera to either left or right depending on what direction the player is looking at
+                pRelative.x += (camMode == eCamMode.nearL) ? -relativeXPosNear : relativeXPosNear;
+                // Reposition pRelative base on the player's local transform
+                pDesired = playerInstance.transform.TransformPoint(pRelative);
+                rotDesired = Quaternion.Euler(xRotationNear, coverInfo.inCover * 90, 0);
                 break;
         }
 
