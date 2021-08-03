@@ -61,6 +61,10 @@ public class ThirdPersonWallCover : MonoBehaviour {
     }; // NOTE: This is just a 90 deg rotation from pushingDirs, 
        //  but I didn't want it to be confusing
 
+    // Used in GetCreepValue() to determine the direction of the player
+    // when in cover at inverse forward direction (inCover=2)
+    private float horizontalInputValueLastFrame = 0;
+    private bool reverseDirection = false;
 
     // Use this for initialization
     void Awake () {
@@ -205,60 +209,33 @@ public class ThirdPersonWallCover : MonoBehaviour {
     float GetCreepValue() {
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-#if DEBUG_ThirdPersonTakeCoverAgainstWall_CreepValue
-        //print("GetCreepValue()\tinCover:"+inCover+"\th:"+h+"\tv:"+v);
-#endif
 
         StealthPlayerCamera.eCamMode newCamMode = StealthPlayerCamera.MODE;
-#if LockCreepValueTo1
-        float threshold = 0.1f;
-        switch (inCover) {
-            case 0:
-                if (Mathf.Abs(h) > threshold) {
-                    return (h > 0) ? 1 : -1;
-                }
-                break;
-            case 1:
-                if (Mathf.Abs(v) > threshold) {
-                    return (-v > 0) ? 1 : -1;
-                }
-                break;
-            case 2:
-                // NOTE: This version does not include the still holding stuff from the other version.
-                if (Mathf.Abs(h) > threshold) {
-                    return (-h > 0) ? 1 : -1;
-                }
-                break;
-            case 3:
-                if (Mathf.Abs(v) > threshold) {
-                    return (v > 0) ? 1 : -1;
-                }
-                break;
-        }
-#else
+
         switch (inCover) {
             case 0:
                 return h;
             case 1:
                 return -v;
             case 2:
-                // You need to add the bit here that will implement controls
-                //  like those shown in the Challenge video
+                // If we are in Near camera mode and last frame there was no horizontal input,
+                // from now on (until the camera swithes back to far mode) the direction will be reversed.
+                if (newCamMode != StealthPlayerCamera.eCamMode.far && horizontalInputValueLastFrame == 0)
+                {
+                    reverseDirection = true;
+                }
+                // If we are in far camera mode and the player has stopped creeping we reverse back to original direction.
+                else if (newCamMode == StealthPlayerCamera.eCamMode.far && Mathf.Abs(creep) < 0.1f)
+                {
+                    reverseDirection = false;
+                }
 
-                // This breaks the pattern here, but it's much less confusing to the player.
-                // Because the camera rotates 180 deg in near mode, the left and right keys
-                //  need to be reversed in near mode. However, if the player is already holding
-                //  one of those keys, that key should not be reversed until the key is released
-                //  and then re-pressed. It's a bit complex, but it's the way that Metal Gear
-                //  Solid handled the issue.
-
-                // Replace this line
-                return -h;
+                horizontalInputValueLastFrame = h;
+                return (reverseDirection) ? h : -h;
 
             case 3:
                 return v;
         }
-#endif
 
         return 0;
     }

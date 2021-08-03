@@ -1088,9 +1088,9 @@ MonoBehaviour:
   cameraEasing: 0.25
   relativePosFar: {x: 0, y: 6, z: -3}
   xRotationFar: 60
-  relativePosNear: {x: 0, y: 2.5, z: -2}
-  relativePosNearLRShift: 1
-  xRotationNear: 25
+  relativePosNear: {x: 0, y: 2.5, z: -3}
+  relativeXPosNear: 1.2
+  xRotationNear: 15
   camMode: 0
 --- !u!1001 &1200764304
 Prefab:
